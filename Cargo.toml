@@ -1,0 +1,15 @@
+[package]
+name = "line-clipping"
+description = "A simple crate implementing line clipping algorithms."
+authors = ["Josh McKinney"]
+license = "MIT OR Apache-2.0"
+version = "0.1.0"
+edition = "2021"
+documentation = "https://docs.rs/line-clipping"
+repository = "https://github.com/joshka/line-clipping"
+readme = "README.md"
+keywords = ["line", "clipping", "algorithm"]
+categories = ["algorithms", "graphics"]
+
+[dependencies]
+bitflags = "2.6.0"
