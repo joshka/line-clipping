@@ -1,4 +1,4 @@
-use crate::{Line, Point, Window};
+use crate::{LineSegment, Point, Window};
 use bitflags::bitflags;
 
 /// Implements the Cohen-Sutherland line clipping algorithm.
@@ -49,7 +49,7 @@ use bitflags::bitflags;
 ///
 /// assert_eq!(line, Some(Line { p1: Point { x: 1.0, y: 1.0 }, p2: Point { x: 9.0, y: 9.0 } }));
 /// ```
-pub fn clip_line(mut line: Line, window: Window) -> Option<Line> {
+pub fn clip_line(mut line: LineSegment, window: Window) -> Option<LineSegment> {
     let mut region_1 = Region::from_point(line.p1, window);
     let mut region_2 = Region::from_point(line.p2, window);
 
@@ -125,7 +125,7 @@ mod tests {
     #[test]
     fn test_line_completely_inside() {
         let line = clip_line(
-            Line {
+            LineSegment {
                 p1: Point { x: 2.0, y: 2.0 },
                 p2: Point { x: 8.0, y: 8.0 },
             },
@@ -138,7 +138,7 @@ mod tests {
         );
         assert_eq!(
             line,
-            Some(Line {
+            Some(LineSegment {
                 p1: Point { x: 2.0, y: 2.0 },
                 p2: Point { x: 8.0, y: 8.0 }
             })
@@ -148,7 +148,7 @@ mod tests {
     #[test]
     fn test_line_completely_outside() {
         let line = clip_line(
-            Line {
+            LineSegment {
                 p1: Point { x: -1.0, y: -1.0 },
                 p2: Point { x: -5.0, y: -5.0 },
             },
@@ -165,7 +165,7 @@ mod tests {
     #[test]
     fn test_line_partially_inside() {
         let line = clip_line(
-            Line {
+            LineSegment {
                 p1: Point { x: 0.0, y: 0.0 },
                 p2: Point { x: 10.0, y: 10.0 },
             },
@@ -178,7 +178,7 @@ mod tests {
         );
         assert_eq!(
             line,
-            Some(Line {
+            Some(LineSegment {
                 p1: Point { x: 1.0, y: 1.0 },
                 p2: Point { x: 9.0, y: 9.0 }
             })
@@ -188,7 +188,7 @@ mod tests {
     #[test]
     fn test_line_vertical() {
         let line = clip_line(
-            Line {
+            LineSegment {
                 p1: Point { x: 5.0, y: 0.0 },
                 p2: Point { x: 5.0, y: 10.0 },
             },
@@ -201,7 +201,7 @@ mod tests {
         );
         assert_eq!(
             line,
-            Some(Line {
+            Some(LineSegment {
                 p1: Point { x: 5.0, y: 1.0 },
                 p2: Point { x: 5.0, y: 9.0 }
             })
@@ -211,7 +211,7 @@ mod tests {
     #[test]
     fn test_line_horizontal() {
         let line = clip_line(
-            Line {
+            LineSegment {
                 p1: Point { x: 0.0, y: 5.0 },
                 p2: Point { x: 10.0, y: 5.0 },
             },
@@ -224,7 +224,7 @@ mod tests {
         );
         assert_eq!(
             line,
-            Some(Line {
+            Some(LineSegment {
                 p1: Point { x: 1.0, y: 5.0 },
                 p2: Point { x: 9.0, y: 5.0 }
             })
@@ -234,7 +234,7 @@ mod tests {
     #[test]
     fn test_line_diagonal() {
         let line = clip_line(
-            Line {
+            LineSegment {
                 p1: Point { x: -5.0, y: -5.0 },
                 p2: Point { x: 15.0, y: 15.0 },
             },
@@ -247,7 +247,7 @@ mod tests {
         );
         assert_eq!(
             line,
-            Some(Line {
+            Some(LineSegment {
                 p1: Point { x: 1.0, y: 1.0 },
                 p2: Point { x: 9.0, y: 9.0 }
             })

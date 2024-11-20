@@ -32,12 +32,12 @@ line_clipping = "0.1"
 
 ```rust
 use line_clipping::{
-    Line, Point, Window,
+    LineSegment, Point, Window,
     cohen_sutherland::clip_line,
 }
 
 let line = clip_line(
-    Line { p1: Point { x: 0.0, y: 0.0 }, p2: Point { x: 10.0, y: 10.0 } },
+    LineSegment { p1: Point { x: 0.0, y: 0.0 }, p2: Point { x: 10.0, y: 10.0 } },
     Window { x_min: 1.0, x_max: 9.0, y_min: 1.0, y_max: 9.0 },
 );
 ```
