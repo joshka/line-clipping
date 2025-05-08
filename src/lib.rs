@@ -1,3 +1,4 @@
+#![no_std]
 //! A rust crate to implement several line clipping algorithms. See the
 //! [documentation](https://docs.rs/line_clipping) for more information. The choice of algorithms is
 //! based on the following article which contains a good summary of the options:
