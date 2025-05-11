@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.2.2](https://github.com/joshka/line-clipping/compare/v0.2.1...v0.2.2) - 2025-05-11
+
+### Added
+
+- *(no_std)* make the crate `no_std`-compatible
+
+### Fixed
+
+- cleanup doc tests and formatting
+
+### Other
+
+- add rustfmt config
+- add git-cliff generated changelog
+- *(deps)* bump bitflags in the rust-dependencies group ([#2](https://github.com/joshka/line-clipping/pull/2))
+- add ci and release workflows
+
 ### 🚀 Features
 
 - *(no_std)* Make the crate `no_std`-compatible
