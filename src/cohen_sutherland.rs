@@ -1,5 +1,6 @@
-use crate::{LineSegment, Point, Window};
 use bitflags::bitflags;
+
+use crate::{LineSegment, Point, Window};
 
 /// Implements the Cohen-Sutherland line clipping algorithm.
 ///
@@ -40,14 +41,21 @@ use bitflags::bitflags;
 /// # Examples
 ///
 /// ```
-/// use cohen_sutherland::clip_line;
+/// use line_clipping::cohen_sutherland::clip_line;
+/// use line_clipping::{LineSegment, Point, Window};
 ///
 /// let line = clip_line(
-///     Line { p1: Point { x: 0.0, y: 0.0 }, p2: Point { x: 10.0, y: 10.0 } },
-///     Window { x_min: 1.0, x_max: 9.0, y_min: 1.0, y_max: 9.0 },
+///     LineSegment::new(Point { x: 0.0, y: 0.0 }, Point { x: 10.0, y: 10.0 }),
+///     Window::new(1.0, 9.0, 1.0, 9.0),
 /// );
 ///
-/// assert_eq!(line, Some(Line { p1: Point { x: 1.0, y: 1.0 }, p2: Point { x: 9.0, y: 9.0 } }));
+/// assert_eq!(
+///     line,
+///     Some(LineSegment {
+///         p1: Point { x: 1.0, y: 1.0 },
+///         p2: Point { x: 9.0, y: 9.0 }
+///     })
+/// );
 /// ```
 pub fn clip_line(mut line: LineSegment, window: Window) -> Option<LineSegment> {
     let mut region_1 = Region::from_point(line.p1, window);

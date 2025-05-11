@@ -30,10 +30,8 @@ cargo add line-clipping
 ## Usage
 
 ```rust
-use line_clipping::{
-    LineSegment, Point, Window,
-    cohen_sutherland::clip_line,
-}
+use line_clipping::cohen_sutherland::clip_line;
+use line_clipping::{LineSegment, Point, Window};
 
 let line = clip_line(
     LineSegment::new(Point::new(0.0, 0.0), Point::new(10.0, 10.0)),
@@ -48,8 +46,7 @@ Copyright (c) 2024 Josh McKinney
 This project is licensed under either of
 
 - MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
-  <http://www.apache.org/licenses/LICENSE-2.0>)
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
 
 at your option.
 
