@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.3.0](https://github.com/joshka/line-clipping/compare/v0.2.2...v0.3.0) - 2025-05-11
+
+### Other
+
+- tidy up tests and impl of cohen_sutherland
+
 ## [0.2.2](https://github.com/joshka/line-clipping/compare/v0.2.1...v0.2.2) - 2025-05-11
 
 ### Added
