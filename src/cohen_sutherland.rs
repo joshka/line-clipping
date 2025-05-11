@@ -45,29 +45,25 @@ use crate::{LineSegment, Point, Window};
 /// use line_clipping::{LineSegment, Point, Window};
 ///
 /// let line = clip_line(
-///     LineSegment::new(Point { x: 0.0, y: 0.0 }, Point { x: 10.0, y: 10.0 }),
+///     LineSegment::new(Point::new(0.0, 0.0), Point::new(10.0, 10.0)),
 ///     Window::new(1.0, 9.0, 1.0, 9.0),
 /// );
 ///
 /// assert_eq!(
 ///     line,
-///     Some(LineSegment {
-///         p1: Point { x: 1.0, y: 1.0 },
-///         p2: Point { x: 9.0, y: 9.0 }
-///     })
+///     Some(LineSegment::new(Point::new(1.0, 1.0), Point::new(9.0, 9.0)))
 /// );
 /// ```
 pub fn clip_line(mut line: LineSegment, window: Window) -> Option<LineSegment> {
     let mut region_1 = Region::from_point(line.p1, window);
     let mut region_2 = Region::from_point(line.p2, window);
 
-    while region_1 != Region::INSIDE || region_2 != Region::INSIDE {
+    while region_1.is_outside() || region_2.is_outside() {
         if region_1.intersects(region_2) {
             // The line is completely outside the clipping window.
             return None;
         }
-
-        if region_1 != Region::INSIDE {
+        if region_1.is_outside() {
             line.p1 = calculate_intersection(line.p1, line.p2, region_1, window);
             region_1 = Region::from_point(line.p1, window);
         } else {
@@ -80,18 +76,20 @@ pub fn clip_line(mut line: LineSegment, window: Window) -> Option<LineSegment> {
 }
 
 fn calculate_intersection(p1: Point, p2: Point, region: Region, window: Window) -> Point {
+    let dx = p2.x - p1.x;
+    let dy = p2.y - p1.y;
     if region.contains(Region::LEFT) {
-        let y = p1.y + (p2.y - p1.y) * (window.x_min - p1.x) / (p2.x - p1.x);
-        Point { x: window.x_min, y }
+        let y = p1.y + (window.x_min - p1.x) * dy / dx;
+        Point::new(window.x_min, y)
     } else if region.contains(Region::RIGHT) {
-        let y = p1.y + (p2.y - p1.y) * (window.x_max - p1.x) / (p2.x - p1.x);
-        Point { x: window.x_max, y }
+        let y = p1.y + (window.x_max - p1.x) * dy / dx;
+        Point::new(window.x_max, y)
     } else if region.contains(Region::BOTTOM) {
-        let x = p1.x + (p2.x - p1.x) * (window.y_min - p1.y) / (p2.y - p1.y);
-        Point { x, y: window.y_min }
+        let x = p1.x + (window.y_min - p1.y) * dx / dy;
+        Point::new(x, window.y_min)
     } else if region.contains(Region::TOP) {
-        let x = p1.x + (p2.x - p1.x) * (window.y_max - p1.y) / (p2.y - p1.y);
-        Point { x, y: window.y_max }
+        let x = p1.x + (window.y_max - p1.y) * dx / dy;
+        Point::new(x, window.y_max)
     } else {
         p1
     }
@@ -100,8 +98,7 @@ fn calculate_intersection(p1: Point, p2: Point, region: Region, window: Window) 
 bitflags! {
     /// Represents the regions in the Cohen-Sutherland algorithm.
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    pub struct Region: u8 {
-        const INSIDE = 0b0000;
+    struct Region: u8 {
         const LEFT = 0b0001;
         const RIGHT = 0b0010;
         const BOTTOM = 0b0100;
@@ -110,9 +107,13 @@ bitflags! {
 }
 
 impl Region {
+    const fn is_outside(self) -> bool {
+        !self.is_empty()
+    }
+
     /// Determines the region in which a point lies.
-    pub fn from_point(point: Point, window: Window) -> Self {
-        let mut region = Region::INSIDE;
+    fn from_point(point: Point, window: Window) -> Self {
+        let mut region = Region::empty();
         if point.x < window.x_min {
             region |= Region::LEFT;
         } else if point.x > window.x_max {
@@ -126,139 +127,55 @@ impl Region {
         region
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_line_completely_inside() {
-        let line = clip_line(
-            LineSegment {
-                p1: Point { x: 2.0, y: 2.0 },
-                p2: Point { x: 8.0, y: 8.0 },
-            },
-            Window {
-                x_min: 1.0,
-                x_max: 9.0,
-                y_min: 1.0,
-                y_max: 9.0,
-            },
-        );
-        assert_eq!(
-            line,
-            Some(LineSegment {
-                p1: Point { x: 2.0, y: 2.0 },
-                p2: Point { x: 8.0, y: 8.0 }
-            })
-        );
+    fn completely_inside() {
+        let line = LineSegment::new(Point::new(2.0, 2.0), Point::new(8.0, 8.0));
+        let window = Window::new(1.0, 9.0, 1.0, 9.0);
+        let expected = LineSegment::new(Point::new(2.0, 2.0), Point::new(8.0, 8.0));
+        assert_eq!(clip_line(line, window), Some(expected));
     }
 
     #[test]
-    fn test_line_completely_outside() {
-        let line = clip_line(
-            LineSegment {
-                p1: Point { x: -1.0, y: -1.0 },
-                p2: Point { x: -5.0, y: -5.0 },
-            },
-            Window {
-                x_min: 1.0,
-                x_max: 9.0,
-                y_min: 1.0,
-                y_max: 9.0,
-            },
-        );
-        assert_eq!(line, None);
+    fn completely_outside() {
+        let line = LineSegment::new(Point::new(-1.0, -1.0), Point::new(-5.0, -5.0));
+        let window = Window::new(1.0, 9.0, 1.0, 9.0);
+        assert_eq!(clip_line(line, window), None);
     }
 
     #[test]
-    fn test_line_partially_inside() {
-        let line = clip_line(
-            LineSegment {
-                p1: Point { x: 0.0, y: 0.0 },
-                p2: Point { x: 10.0, y: 10.0 },
-            },
-            Window {
-                x_min: 1.0,
-                x_max: 9.0,
-                y_min: 1.0,
-                y_max: 9.0,
-            },
-        );
-        assert_eq!(
-            line,
-            Some(LineSegment {
-                p1: Point { x: 1.0, y: 1.0 },
-                p2: Point { x: 9.0, y: 9.0 }
-            })
-        );
+    fn partially_inside() {
+        let line = LineSegment::new(Point::new(0.0, 0.0), Point::new(10.0, 10.0));
+        let window = Window::new(1.0, 9.0, 1.0, 9.0);
+        let expected = LineSegment::new(Point::new(1.0, 1.0), Point::new(9.0, 9.0));
+        assert_eq!(clip_line(line, window), Some(expected));
     }
 
     #[test]
-    fn test_line_vertical() {
-        let line = clip_line(
-            LineSegment {
-                p1: Point { x: 5.0, y: 0.0 },
-                p2: Point { x: 5.0, y: 10.0 },
-            },
-            Window {
-                x_min: 1.0,
-                x_max: 9.0,
-                y_min: 1.0,
-                y_max: 9.0,
-            },
-        );
-        assert_eq!(
-            line,
-            Some(LineSegment {
-                p1: Point { x: 5.0, y: 1.0 },
-                p2: Point { x: 5.0, y: 9.0 }
-            })
-        );
+    fn vertical() {
+        let line = LineSegment::new(Point::new(5.0, 0.0), Point::new(5.0, 10.0));
+        let window = Window::new(1.0, 9.0, 1.0, 9.0);
+        let expected = LineSegment::new(Point::new(5.0, 1.0), Point::new(5.0, 9.0));
+        assert_eq!(clip_line(line, window), Some(expected));
     }
 
     #[test]
-    fn test_line_horizontal() {
-        let line = clip_line(
-            LineSegment {
-                p1: Point { x: 0.0, y: 5.0 },
-                p2: Point { x: 10.0, y: 5.0 },
-            },
-            Window {
-                x_min: 1.0,
-                x_max: 9.0,
-                y_min: 1.0,
-                y_max: 9.0,
-            },
-        );
-        assert_eq!(
-            line,
-            Some(LineSegment {
-                p1: Point { x: 1.0, y: 5.0 },
-                p2: Point { x: 9.0, y: 5.0 }
-            })
-        );
+    fn horizontal() {
+        let line = LineSegment::new(Point::new(0.0, 5.0), Point::new(10.0, 5.0));
+        let window = Window::new(1.0, 9.0, 1.0, 9.0);
+        let expected = LineSegment::new(Point::new(1.0, 5.0), Point::new(9.0, 5.0));
+        assert_eq!(clip_line(line, window), Some(expected));
     }
 
     #[test]
-    fn test_line_diagonal() {
-        let line = clip_line(
-            LineSegment {
-                p1: Point { x: -5.0, y: -5.0 },
-                p2: Point { x: 15.0, y: 15.0 },
-            },
-            Window {
-                x_min: 1.0,
-                x_max: 9.0,
-                y_min: 1.0,
-                y_max: 9.0,
-            },
-        );
-        assert_eq!(
-            line,
-            Some(LineSegment {
-                p1: Point { x: 1.0, y: 1.0 },
-                p2: Point { x: 9.0, y: 9.0 }
-            })
-        );
+    fn diagonal() {
+        let line = LineSegment::new(Point::new(-5.0, -5.0), Point::new(15.0, 15.0));
+        let window = Window::new(1.0, 9.0, 1.0, 9.0);
+        let expected = LineSegment::new(Point::new(1.0, 1.0), Point::new(9.0, 9.0));
+        assert_eq!(clip_line(line, window), Some(expected));
     }
 }
