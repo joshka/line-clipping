@@ -12,4 +12,4 @@ keywords = ["line", "clipping", "algorithm"]
 categories = ["algorithms", "graphics"]
 
 [dependencies]
-bitflags = "2.6.0"
+bitflags = "2.9.0"
