@@ -130,52 +130,168 @@ impl Region {
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+
     use super::*;
 
-    #[test]
-    fn completely_inside() {
-        let line = LineSegment::new(Point::new(2.0, 2.0), Point::new(8.0, 8.0));
-        let window = Window::new(1.0, 9.0, 1.0, 9.0);
-        let expected = LineSegment::new(Point::new(2.0, 2.0), Point::new(8.0, 8.0));
-        assert_eq!(clip_line(line, window), Some(expected));
+    #[rstest]
+    #[case::left(Point::new(-2.0, 0.0), Region::LEFT)]
+    #[case::right(Point::new(2.0, 0.0), Region::RIGHT)]
+    #[case::top(Point::new(0.0, 2.0), Region::TOP)]
+    #[case::bottom(Point::new(0.0, -2.0), Region::BOTTOM)]
+    #[case::top_left(Point::new(-2.0, 2.0), Region::LEFT | Region::TOP)]
+    #[case::top_right(Point::new(2.0, 2.0), Region::RIGHT | Region::TOP)]
+    #[case::bottom_left(Point::new(-2.0, -2.0), Region::LEFT | Region::BOTTOM)]
+    #[case::bottom_right(Point::new(2.0, -2.0), Region::RIGHT | Region::BOTTOM)]
+    #[case::inside(Point::new(0.0, 0.0), Region::empty())]
+    #[case::inside_left(Point::new(-1.0, 0.0), Region::empty())]
+    #[case::inside_right(Point::new(1.0, 0.0), Region::empty())]
+    #[case::inside_top(Point::new(0.0, 1.0), Region::empty())]
+    #[case::inside_bottom(Point::new(0.0, -1.0), Region::empty())]
+    #[case::inside_top_left(Point::new(-1.0, 1.0), Region::empty())]
+    #[case::inside_top_right(Point::new(1.0, 1.0), Region::empty())]
+    #[case::inside_bottom_left(Point::new(-1.0, -1.0), Region::empty())]
+    #[case::inside_bottom_right(Point::new(1.0, -1.0), Region::empty())]
+    fn region_from_point(#[case] point: Point, #[case] expected: Region) {
+        let window = Window::new(-1.0, 1.0, -1.0, 1.0);
+        assert_eq!(Region::from_point(point, window), expected);
     }
 
-    #[test]
-    fn completely_outside() {
-        let line = LineSegment::new(Point::new(-1.0, -1.0), Point::new(-5.0, -5.0));
-        let window = Window::new(1.0, 9.0, 1.0, 9.0);
+    #[rstest]
+    #[case::top_left(Point::new(-2.0, 2.0), Point::new(-3.0, 3.0))]
+    #[case::top_right(Point::new(2.0, 2.0), Point::new(3.0, 3.0))]
+    #[case::bottom_left(Point::new(-2.0, -2.0), Point::new(-3.0, -3.0))]
+    #[case::bottom_right(Point::new(2.0, -2.0), Point::new(3.0, -3.0))]
+    #[case::left(Point::new(-2.0, 0.0), Point::new(-3.0, 0.0))]
+    #[case::right(Point::new(2.0, 0.0), Point::new(3.0, 0.0))]
+    #[case::top(Point::new(0.0, 2.0), Point::new(0.0, 2.0))]
+    #[case::bottom(Point::new(0.0, -2.0), Point::new(0.0, -3.0))]
+    fn outside(#[case] p1: Point, #[case] p2: Point) {
+        let line = LineSegment::new(p1, p2);
+        let window = Window::new(-1.0, 1.0, -1.0, 1.0);
         assert_eq!(clip_line(line, window), None);
     }
 
-    #[test]
-    fn partially_inside() {
-        let line = LineSegment::new(Point::new(0.0, 0.0), Point::new(10.0, 10.0));
-        let window = Window::new(1.0, 9.0, 1.0, 9.0);
-        let expected = LineSegment::new(Point::new(1.0, 1.0), Point::new(9.0, 9.0));
+    #[rstest]
+    #[case::left_border(Point::new(-1.0, -1.0), Point::new(-1.0, 1.0))]
+    #[case::right_border(Point::new(1.0, -1.0), Point::new(1.0, 1.0))]
+    #[case::top_border(Point::new(-1.0, 1.0), Point::new(1.0, 1.0))]
+    #[case::bottom_border(Point::new(-1.0, -1.0), Point::new(1.0, -1.0))]
+    #[case::corners_up(Point::new(-1.0, -1.0), Point::new(1.0, 1.0))]
+    #[case::corners_down(Point::new(-1.0, 1.0), Point::new(1.0, -1.0))]
+    #[case::horizontal(Point::new(-0.5, 0.0), Point::new(0.5, 0.0))]
+    #[case::vertical(Point::new(0.0, -0.5), Point::new(0.0, 0.5))]
+    #[case::diagonal_up(Point::new(-0.5, -0.5), Point::new(0.5, 0.5))]
+    #[case::diagonal_down(Point::new(-0.5, 0.5), Point::new(0.5, -0.5))]
+    fn inside(#[case] p1: Point, #[case] p2: Point) {
+        let line = LineSegment::new(p1, p2);
+        let window = Window::new(-1.0, 1.0, -1.0, 1.0);
+        assert_eq!(clip_line(line, window), Some(line));
+    }
+
+    /// Test cases for lines that point to the origin and intersect the window. The cases move
+    /// clockwise around the window. This makes sure that we test the intersection of the line with
+    /// the window from all regions.
+    ///
+    /// ```
+    /// 1 2 3 4 5 6 7 8 1
+    /// 8               2
+    /// 7   ┌───────┐   3
+    /// 6   │       │   4
+    /// 5   │   .   │   5
+    /// 4   │       │   6
+    /// 3   └───────┘   7
+    /// 2               8
+    /// 1 8 7 6 5 4 3 2 1
+    /// ```
+    #[rstest]
+    #[case::top_1(Point::new(-2.0, 2.0), Point::new(-1.0, 1.0))]
+    #[case::top_2(Point::new(-1.5, 2.0), Point::new(-0.75, 1.0))]
+    #[case::top_3(Point::new(-1.0, 2.0), Point::new(-0.5, 1.0))]
+    #[case::top_4(Point::new(-0.5, 2.0), Point::new(-0.25, 1.0))]
+    #[case::top_5(Point::new(0.0, 2.0), Point::new(0.0, 1.0))]
+    #[case::top_6(Point::new(0.5, 2.0), Point::new(0.25, 1.0))]
+    #[case::top_7(Point::new(1.0, 2.0), Point::new(0.5, 1.0))]
+    #[case::top_8(Point::new(1.5, 2.0), Point::new(0.75, 1.0))]
+    #[case::right_1(Point::new(2.0, 2.0), Point::new(1.0, 1.0))]
+    #[case::right_2(Point::new(2.0, 1.5), Point::new(1.0, 0.75))]
+    #[case::right_3(Point::new(2.0, 1.0), Point::new(1.0, 0.5))]
+    #[case::right_4(Point::new(2.0, 0.5), Point::new(1.0, 0.25))]
+    #[case::right_5(Point::new(2.0, 0.0), Point::new(1.0, 0.0))]
+    #[case::right_6(Point::new(2.0, -0.5), Point::new(1.0, -0.25))]
+    #[case::right_7(Point::new(2.0, -1.0), Point::new(1.0, -0.5))]
+    #[case::right_8(Point::new(2.0, -1.5), Point::new(1.0, -0.75))]
+    #[case::bottom_1(Point::new(2.0, -2.0), Point::new(1.0, -1.0))]
+    #[case::bottom_2(Point::new(1.5, -2.0), Point::new(0.75, -1.0))]
+    #[case::bottom_3(Point::new(1.0, -2.0), Point::new(0.5, -1.0))]
+    #[case::bottom_4(Point::new(0.5, -2.0), Point::new(0.25, -1.0))]
+    #[case::bottom_5(Point::new(0.0, -2.0), Point::new(0.0, -1.0))]
+    #[case::bottom_6(Point::new(-0.5, -2.0), Point::new(-0.25, -1.0))]
+    #[case::bottom_7(Point::new(-1.0, -2.0), Point::new(-0.5, -1.0))]
+    #[case::bottom_8(Point::new(-1.5, -2.0), Point::new(-0.75, -1.0))]
+    #[case::left_1(Point::new(-2.0, -2.0), Point::new(-1.0, -1.0))]
+    #[case::left_2(Point::new(-2.0, -1.5), Point::new(-1.0, -0.75))]
+    #[case::left_3(Point::new(-2.0, -1.0), Point::new(-1.0, -0.5))]
+    #[case::left_4(Point::new(-2.0, -0.5), Point::new(-1.0, -0.25))]
+    #[case::left_5(Point::new(-2.0, 0.0), Point::new(-1.0, 0.0))]
+    #[case::left_6(Point::new(-2.0, 0.5), Point::new(-1.0, 0.25))]
+    #[case::left_7(Point::new(-2.0, 1.0), Point::new(-1.0, 0.5))]
+    #[case::left_8(Point::new(-2.0, 1.5), Point::new(-1.0, 0.75))]
+    fn one_intersection(#[case] p1: Point, #[case] expected: Point) {
+        let line = LineSegment::new(p1, Point::ORIGIN);
+        let window = Window::new(-1.0, 1.0, -1.0, 1.0);
+        let expected = LineSegment::new(expected, Point::ORIGIN);
         assert_eq!(clip_line(line, window), Some(expected));
     }
 
-    #[test]
-    fn vertical() {
-        let line = LineSegment::new(Point::new(5.0, 0.0), Point::new(5.0, 10.0));
-        let window = Window::new(1.0, 9.0, 1.0, 9.0);
-        let expected = LineSegment::new(Point::new(5.0, 1.0), Point::new(5.0, 9.0));
-        assert_eq!(clip_line(line, window), Some(expected));
-    }
+    const A: Point = Point::new(-2.0, 2.0);
+    const B: Point = Point::new(0.0, 2.0);
+    const C: Point = Point::new(2.0, 2.0);
+    const D: Point = Point::new(2.0, 0.0);
+    const E: Point = Point::new(2.0, -2.0);
+    const F: Point = Point::new(0.0, -2.0);
+    const G: Point = Point::new(-2.0, -2.0);
+    const H: Point = Point::new(-2.0, 0.0);
 
-    #[test]
-    fn horizontal() {
-        let line = LineSegment::new(Point::new(0.0, 5.0), Point::new(10.0, 5.0));
-        let window = Window::new(1.0, 9.0, 1.0, 9.0);
-        let expected = LineSegment::new(Point::new(1.0, 5.0), Point::new(9.0, 5.0));
-        assert_eq!(clip_line(line, window), Some(expected));
-    }
-
-    #[test]
-    fn diagonal() {
-        let line = LineSegment::new(Point::new(-5.0, -5.0), Point::new(15.0, 15.0));
-        let window = Window::new(1.0, 9.0, 1.0, 9.0);
-        let expected = LineSegment::new(Point::new(1.0, 1.0), Point::new(9.0, 9.0));
-        assert_eq!(clip_line(line, window), Some(expected));
+    /// Test cases for lines that intersect the window twice. The cases move clockwise around the
+    /// window. This makes sure that we test every region to each other region.
+    /// ```
+    /// A       B       C
+    ///
+    ///     ┌───────┐
+    ///     │       │
+    /// H   │   .   │   D
+    ///     │       │
+    ///     └───────┘
+    ///
+    /// G       F       E
+    /// ```
+    #[rstest]
+    #[case::a_to_d(A, D, Point::new(0.0, 1.0), Point::new(1.0, 0.5))]
+    #[case::a_to_e(A, E, Point::new(-1.0, 1.0), Point::new(1.0, -1.0))]
+    #[case::a_to_k(A, F, Point::new(-1.0, 0.0), Point::new(-0.5, -1.0))]
+    #[case::b_to_d(B, D, Point::new(1.0, 1.0), Point::new(1.0, 1.0))]
+    #[case::b_to_e(B, E, Point::new(0.5, 1.0), Point::new(1.0, 0.0))]
+    #[case::b_to_f(B, F, Point::new(0.0, 1.0), Point::new(0.0, -1.0))]
+    #[case::b_to_g(B, G, Point::new(-0.5, 1.0), Point::new(-1.0, -0.0))]
+    #[case::b_to_h(B, H, Point::new(-1.0, 1.0), Point::new(-1.0, 1.0))]
+    #[case::c_to_f(C, F, Point::new(1.0, 0.0), Point::new(0.5, -1.0))]
+    #[case::c_to_g(C, G, Point::new(1.0, 1.0), Point::new(-1.0, -1.0))]
+    #[case::c_to_h(C, H, Point::new(0.0, 1.0), Point::new(-1.0, 0.5))]
+    #[case::d_to_f(D, F, Point::new(1.0, -1.0), Point::new(1.0, -1.0))]
+    #[case::d_to_g(D, G, Point::new(1.0, -0.5), Point::new(0.0, -1.0))]
+    #[case::d_to_h(D, H, Point::new(1.0, 0.0), Point::new(-1.0, 0.0))]
+    #[case::e_to_h(E, H, Point::new(0.0, -1.0), Point::new(-1.0, -0.5))]
+    #[case::f_to_h(F, H, Point::new(-1.0, -1.0), Point::new(-1.0, -1.0))]
+    fn two_intersections(
+        #[case] p1: Point,
+        #[case] p2: Point,
+        #[case] expected_p1: Point,
+        #[case] expected_p2: Point,
+    ) {
+        let line = LineSegment::new(p1, p2);
+        let window = Window::new(-1.0, 1.0, -1.0, 1.0);
+        let expected = LineSegment::new(expected_p1, expected_p2);
+        assert_eq!(clip_line(line, window).unwrap(), expected);
     }
 }

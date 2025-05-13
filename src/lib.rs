@@ -38,7 +38,7 @@
 //!
 //! # License
 //!
-//! Copyright (c) 2024 Josh McKinney
+//! Copyright (c) Josh McKinney
 //!
 //! This project is licensed under either of
 //!
@@ -64,8 +64,10 @@ pub struct Point {
 }
 
 impl Point {
+    pub const ORIGIN: Point = Point { x: 0.0, y: 0.0 };
+
     /// Creates a new point.
-    pub fn new(x: f64, y: f64) -> Self {
+    pub const fn new(x: f64, y: f64) -> Self {
         Point { x, y }
     }
 }
@@ -79,7 +81,7 @@ pub struct LineSegment {
 
 impl LineSegment {
     /// Creates a new line segment.
-    pub fn new(p1: Point, p2: Point) -> Self {
+    pub const fn new(p1: Point, p2: Point) -> Self {
         LineSegment { p1, p2 }
     }
 }
@@ -95,7 +97,7 @@ pub struct Window {
 
 impl Window {
     /// Creates a new window.
-    pub fn new(x_min: f64, x_max: f64, y_min: f64, y_max: f64) -> Self {
+    pub const fn new(x_min: f64, x_max: f64, y_min: f64, y_max: f64) -> Self {
         Window {
             x_min,
             x_max,
