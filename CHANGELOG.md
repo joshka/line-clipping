@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.3.2](https://github.com/joshka/line-clipping/compare/v0.3.1...v0.3.2) - 2025-05-13
+
+### Other
+
+- add badges to readme ([#10](https://github.com/joshka/line-clipping/pull/10))
+- update readme from lib.rs
+- fix lints and docs ([#9](https://github.com/joshka/line-clipping/pull/9))
+- add CI for no_std ([#7](https://github.com/joshka/line-clipping/pull/7))
+
 ## [0.3.1](https://github.com/joshka/line-clipping/compare/v0.3.0...v0.3.1) - 2025-05-13
 
 ### Other
