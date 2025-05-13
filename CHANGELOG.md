@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.3.1](https://github.com/joshka/line-clipping/compare/v0.3.0...v0.3.1) - 2025-05-13
+
+### Other
+
+- add better tests ([#5](https://github.com/joshka/line-clipping/pull/5))
+
 ## [0.3.0](https://github.com/joshka/line-clipping/compare/v0.2.2...v0.3.0) - 2025-05-11
 
 ### Other
