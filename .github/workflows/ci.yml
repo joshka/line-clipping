@@ -48,5 +48,5 @@ jobs:
       - uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: ratatui/kasuari
+          slug: joshka/line-clipping
           fail_ci_if_error: false
