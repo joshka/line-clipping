@@ -12,7 +12,7 @@ Algorithms](https://pmc.ncbi.nlm.nih.gov/articles/PMC9605407/). J Imaging. 2022 
 
 Supports:
 
-- [x] Cohen-Sutherland
+- [x] [Cohen-Sutherland](https://docs.rs/line-clipping/latest/line_clipping/cohen_sutherland/)
 
 TODO
 
@@ -33,15 +33,14 @@ cargo add line-clipping
 use line_clipping::cohen_sutherland::clip_line;
 use line_clipping::{LineSegment, Point, Window};
 
-let line = clip_line(
-    LineSegment::new(Point::new(0.0, 0.0), Point::new(10.0, 10.0)),
-    Window::new(1.0, 9.0, 1.0, 9.0),
-);
+let line = LineSegment::new(Point::new(-10.0, -10.0), Point::new(20.0, 20.0));
+let window = Window::new(0.0, 10.0, 0.0, 10.0);
+let clipped_line = clip_line(line, window);
 ```
 
 ## License
 
-Copyright (c) 2024 Josh McKinney
+Copyright (c) Josh McKinney
 
 This project is licensed under either of
 
