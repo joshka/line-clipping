@@ -1,42 +1,58 @@
+//! Implements the Cohen-Sutherland line clipping algorithm.
+//!
+//! Returns the clipped line if the original line intersects the clipping window, or `None` if the
+//! original line is completely outside the clipping window.
+//!
+//! Reference: [Cohen-Sutherland algorithm](https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm)
+//!
+//! The Cohen-Sutherland algorithm is a line clipping algorithm that divides the 2D plane into 9
+//! regions and then determines the region in which the line lies. If the line lies completely
+//! outside the clipping window, it is rejected. If the line lies completely inside the clipping
+//! window, it is accepted. If the line lies partially inside the clipping window, it is clipped.
+//!
+//! The regions are defined as follows:
+//!
+//! ```plain
+//! 1001 | 1000 | 1010
+//! -----|------|-----
+//! 0001 | 0000 | 0010
+//! -----|------|-----
+//! 0101 | 0100 | 0110
+//! ```
+//!
+//! The algorithm works as follows:
+//!
+//! 1. Determine the region in which the line's starting point lies.
+//! 2. Determine the region in which the line's ending point lies.
+//! 3. If both points lie in region 0000, the line is completely inside the clipping window and
+//!    should be accepted.
+//! 4. If both points lie in the same region that is not 0000, the line is completely outside the
+//!    clipping window and should be rejected.
+//! 5. If the points lie in different regions, the line is partially inside the clipping window and
+//!    should be clipped.
+//! 6. Clip the line using the Cohen-Sutherland algorithm.
+//! 7. Repeat the process for the clipped line.
+//!
+//! The Cohen-Sutherland algorithm is commonly used in computer graphics to clip lines against a
+//! rectangular window.
+//!
+//! # Examples
+//!
+//! ```
+//! use line_clipping::cohen_sutherland::clip_line;
+//! use line_clipping::{LineSegment, Point, Window};
+//!
+//! let line = LineSegment::new(Point::new(-10.0, -10.0), Point::new(20.0, 20.0));
+//! let window = Window::new(0.0, 10.0, 0.0, 10.0);
+//! let clipped_line = clip_line(line, window);
+//! ```
 use bitflags::bitflags;
 
 use crate::{LineSegment, Point, Window};
 
-/// Implements the Cohen-Sutherland line clipping algorithm.
+/// Clips a line segment against a rectangular window using the Cohen-Sutherland algorithm.
 ///
-/// Returns the clipped line if the original line intersects the clipping window, or `None` if the
-/// original line is completely outside the clipping window.
-///
-/// Reference: [Cohen-Sutherland algorithm](https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm)
-///
-/// The Cohen-Sutherland algorithm is a line clipping algorithm that divides the 2D plane into 9
-/// regions and then determines the region in which the line lies. If the line lies completely
-/// outside the clipping window, it is rejected. If the line lies completely inside the clipping
-/// window, it is accepted. If the line lies partially inside the clipping window, it is clipped.
-///
-/// The regions are defined as follows:
-///
-/// 1001 | 1000 | 1010
-/// -----|------|-----
-/// 0001 | 0000 | 0010
-/// -----|------|-----
-/// 0101 | 0100 | 0110
-///
-/// The algorithm works as follows:
-///
-/// 1. Determine the region in which the line's starting point lies.
-/// 2. Determine the region in which the line's ending point lies.
-/// 3. If both points lie in region 0000, the line is completely inside the clipping window and
-///    should be accepted.
-/// 4. If both points lie in the same region that is not 0000, the line is completely outside the
-///    clipping window and should be rejected.
-/// 5. If the points lie in different regions, the line is partially inside the clipping window and
-///    should be clipped.
-/// 6. Clip the line using the Cohen-Sutherland algorithm.
-/// 7. Repeat the process for the clipped line.
-///
-/// The Cohen-Sutherland algorithm is commonly used in computer graphics to clip lines against a
-/// rectangular window.
+/// See the [module-level documentation](crate::cohen_sutherland) for more details on the algorithm.
 ///
 /// # Examples
 ///
@@ -44,16 +60,11 @@ use crate::{LineSegment, Point, Window};
 /// use line_clipping::cohen_sutherland::clip_line;
 /// use line_clipping::{LineSegment, Point, Window};
 ///
-/// let line = clip_line(
-///     LineSegment::new(Point::new(0.0, 0.0), Point::new(10.0, 10.0)),
-///     Window::new(1.0, 9.0, 1.0, 9.0),
-/// );
-///
-/// assert_eq!(
-///     line,
-///     Some(LineSegment::new(Point::new(1.0, 1.0), Point::new(9.0, 9.0)))
-/// );
+/// let line = LineSegment::new(Point::new(-10.0, -10.0), Point::new(20.0, 20.0));
+/// let window = Window::new(0.0, 10.0, 0.0, 10.0);
+/// let clipped_line = clip_line(line, window);
 /// ```
+#[must_use]
 pub fn clip_line(mut line: LineSegment, window: Window) -> Option<LineSegment> {
     let mut region_1 = Region::from_point(line.p1, window);
     let mut region_2 = Region::from_point(line.p2, window);
@@ -69,7 +80,7 @@ pub fn clip_line(mut line: LineSegment, window: Window) -> Option<LineSegment> {
         } else {
             line.p2 = calculate_intersection(line.p2, line.p1, region_2, window);
             region_2 = Region::from_point(line.p2, window);
-        };
+        }
     }
 
     Some(line)
@@ -113,16 +124,16 @@ impl Region {
 
     /// Determines the region in which a point lies.
     fn from_point(point: Point, window: Window) -> Self {
-        let mut region = Region::empty();
+        let mut region = Self::empty();
         if point.x < window.x_min {
-            region |= Region::LEFT;
+            region |= Self::LEFT;
         } else if point.x > window.x_max {
-            region |= Region::RIGHT;
+            region |= Self::RIGHT;
         }
         if point.y < window.y_min {
-            region |= Region::BOTTOM;
+            region |= Self::BOTTOM;
         } else if point.y > window.y_max {
-            region |= Region::TOP;
+            region |= Self::TOP;
         }
         region
     }

@@ -16,3 +16,11 @@ bitflags = "2.9.0"
 
 [dev-dependencies]
 rstest = "0.25.0"
+
+[lints.clippy]
+nursery = { level = "warn" }
+pedantic = { level = "warn" }
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
