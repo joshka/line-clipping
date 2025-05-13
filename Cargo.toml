@@ -13,3 +13,4 @@ categories = ["algorithms", "graphics"]
 
 [dependencies]
 bitflags = "2.9.0"
+rstest = "0.25.0"
