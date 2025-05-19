@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.3.3](https://github.com/joshka/line-clipping/compare/v0.3.2...v0.3.3) - 2025-05-19
+
+### Other
+
+- *(deps)* use bitflags 2.9 instead of 2.9.0 ([#12](https://github.com/joshka/line-clipping/pull/12))
+
 ## [0.3.2](https://github.com/joshka/line-clipping/compare/v0.3.1...v0.3.2) - 2025-05-13
 
 ### Other
