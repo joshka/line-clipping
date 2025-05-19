@@ -12,7 +12,7 @@ keywords = ["line", "clipping", "algorithm"]
 categories = ["algorithms", "graphics"]
 
 [dependencies]
-bitflags = "2.9.0"
+bitflags = "2.9.1"
 
 [dev-dependencies]
 rstest = "0.25.0"
