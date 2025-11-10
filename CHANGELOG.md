@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.3.5](https://github.com/joshka/line-clipping/compare/v0.3.4...v0.3.5) - 2025-11-10
+
+### Other
+
+- *(deps)* bump bitflags in the rust-dependencies group ([#21](https://github.com/joshka/line-clipping/pull/21))
+- *(deps)* bump bitflags in the rust-dependencies group ([#18](https://github.com/joshka/line-clipping/pull/18))
+- fix clippy install ([#19](https://github.com/joshka/line-clipping/pull/19))
+
 ## [0.3.4](https://github.com/joshka/line-clipping/compare/v0.3.3...v0.3.4) - 2025-09-28
 
 ### Other
