@@ -48,6 +48,11 @@ TODO
 cargo add line-clipping
 ```
 
+## Minimum supported Rust version
+
+The crate is built with Rust 1.85 to match the 2024 edition. The MSRV may increase in a
+future minor release, but will be noted in the changelog.
+
 ## Usage
 
 ```rust
