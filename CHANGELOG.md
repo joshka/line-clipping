@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.3.5](https://github.com/joshka/line-clipping/compare/v0.3.4...v0.3.5) - 2025-11-29
+
+### Other
+
+- use trusted-publising ([#24](https://github.com/joshka/line-clipping/pull/24))
+- set edition 2024 and msrv 1.85 ([#23](https://github.com/joshka/line-clipping/pull/23))
+- *(deps)* bump actions/checkout in the github-actions group ([#22](https://github.com/joshka/line-clipping/pull/22))
+- *(deps)* bump bitflags in the rust-dependencies group ([#21](https://github.com/joshka/line-clipping/pull/21))
+- *(deps)* bump bitflags in the rust-dependencies group ([#18](https://github.com/joshka/line-clipping/pull/18))
+- fix clippy install ([#19](https://github.com/joshka/line-clipping/pull/19))
+
 ## [0.3.4](https://github.com/joshka/line-clipping/compare/v0.3.3...v0.3.4) - 2025-09-28
 
 ### Other
