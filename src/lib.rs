@@ -59,6 +59,10 @@
 //! the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without
 //! any additional terms or conditions.
 pub mod cohen_sutherland;
+pub mod sutherland_hodgman;
+
+extern crate alloc;
+use alloc::boxed::Box;
 
 /// A point in 2D space.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -96,6 +100,24 @@ impl LineSegment {
     #[must_use]
     pub const fn new(p1: Point, p2: Point) -> Self {
         Self { p1, p2 }
+    }
+}
+
+/// A polygon defined by a set of vertices.
+/// Note: the order of the vertices affects the final shape of the polygon.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Polygon {
+    /// Vertices of the polygon.
+    pub vertices: Box<[Point]>,
+}
+
+impl Polygon {
+    /// Creates a new polygon.
+    #[must_use]
+    pub fn new(vertices: &[Point]) -> Self {
+        Self {
+            vertices: vertices.into(),
+        }
     }
 }
 
