@@ -10,6 +10,7 @@
 //! Supports:
 //!
 //! - [x] [Cohen-Sutherland](crate::cohen_sutherland)
+//! - [x] [Sutherland-Hodgman](https://docs.rs/line-clipping/latest/line_clipping/sutherland_hodgman/) *polygon* clipping algorithm
 //!
 //! TODO
 //!

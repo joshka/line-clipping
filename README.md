@@ -34,6 +34,7 @@ Algorithms](https://pmc.ncbi.nlm.nih.gov/articles/PMC9605407/). J Imaging. 2022 
 Supports:
 
 - [x] [Cohen-Sutherland](https://docs.rs/line-clipping/latest/line_clipping/cohen_sutherland/)
+- [x] [Sutherland-Hodgman](https://docs.rs/line-clipping/latest/line_clipping/sutherland_hodgman/) *polygon* clipping algorithm
 
 TODO
 
