@@ -51,7 +51,7 @@
 //! let clipped = clip_polygon(&polygon, Window::new(0.0, 3.0, 0.0, 3.0));
 //!
 //! assert_eq!(
-//!     clipped.vertices.as_ref(),
+//!     clipped.vertices.as_slice(),
 //!     &[
 //!         Point::new(0.0, 0.0),
 //!         Point::new(0.0, 1.0),
@@ -87,7 +87,7 @@ use crate::{Point, Polygon, Window};
 /// let clipped = clip_polygon(&polygon, Window::new(0.0, 3.0, 0.0, 3.0));
 ///
 /// assert_eq!(
-///     clipped.vertices.as_ref(),
+///     clipped.vertices.as_slice(),
 ///     &[
 ///         Point::new(0.0, 0.0),
 ///         Point::new(0.0, 1.0),
@@ -204,7 +204,7 @@ mod tests {
     /// Builds a [`Polygon`] from a slice of `(x, y)` tuples.
     fn poly(points: &[(f64, f64)]) -> Polygon {
         let vertices: Vec<Point> = points.iter().map(|&(x, y)| Point::new(x, y)).collect();
-        Polygon::new(&vertices)
+        vertices.into()
     }
 
     /// No clipping should occur: the polygon is either entirely inside the window (returned

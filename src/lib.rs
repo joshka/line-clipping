@@ -64,7 +64,6 @@ pub mod cohen_sutherland;
 pub mod sutherland_hodgman;
 
 extern crate alloc;
-use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 /// A point in 2D space.
@@ -118,7 +117,7 @@ impl LineSegment {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Polygon {
     /// Vertices of the polygon.
-    pub vertices: Box<[Point]>,
+    pub vertices: Vec<Point>,
 }
 
 impl Polygon {
@@ -126,16 +125,14 @@ impl Polygon {
     #[must_use]
     pub fn new(vertices: &[Point]) -> Self {
         Self {
-            vertices: vertices.into(),
+            vertices: vertices.to_vec(),
         }
     }
 }
 
 impl From<Vec<Point>> for Polygon {
     fn from(vertices: Vec<Point>) -> Self {
-        Self {
-            vertices: vertices.into_boxed_slice(),
-        }
+        Self { vertices }
     }
 }
 
