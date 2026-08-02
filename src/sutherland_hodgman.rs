@@ -60,6 +60,22 @@
 //!     ]
 //! );
 //! ```
+//!
+//! For concave or self-intersecting input, clipping can produce disconnected regions. This function
+//! returns a single vertex sequence, so such regions may be joined by overlapping edges along the
+//! clipping-window boundary. The result is not necessarily a simple polygon and may produce bridge
+//! artifacts when its outline is rendered.
+//!
+//! ```
+//! Input polygon:                 After clipping:
+//! ┌───────────────┐
+//! │               │
+//! │  ┌─────────┐  │                   bridge
+//! │  │         │  │    ──────>   ┌──┐=========┌──┐
+//! │  │         │  │              │  │         │  │
+//! └──┘         └──┘              └──┘         └──┘
+//!
+//! ```
 
 use alloc::vec::Vec;
 
