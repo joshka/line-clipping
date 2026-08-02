@@ -1,97 +1,117 @@
 //! Implements the Sutherland-Hodgman polygon clipping algorithm.
 //!
-//! Return the clipped polygon.
+//! Returns the portion of a polygon inside a rectangular clipping window.
 //!
-//! Reference: [Sutherland-Hodgman](https://en.wikipedia.org/wiki/Sutherland%E2%80%93Hodgman_algorithm)
+//! Reference: Sutherland and Hodgman,
+//! [*Reentrant Polygon Clipping*](https://doi.org/10.1145/360767.360802).
 //!
-//! The Sutherland-Hodgman algorithm clips a polygon against a convex clipping window.
-//! For each edge of the clipping window, the current polygon is clipped against
-//! that edge, producing a new output polygon.
+//! The Sutherland-Hodgman algorithm clips a polygon against a convex clipping window. For each edge
+//! of the clipping window, the current polygon is clipped against that edge, producing a new output
+//! polygon.
 //!
 //! For every edge of the clipping window:
 //! 1. Start with an empty output polygon.
-//! 2. For each edge of the subject polygon (formed by the previous and current
-//!    vertices):
+//! 2. For each edge of the subject polygon (formed by the previous and current vertices):
 //!    1. If both vertices lie inside, push the current vertex.
-//!    2. If the previous vertex is inside and the current one is outside,
-//!       push the intersection point.
-//!    3. If the previous vertex is outside and the current one is inside,
-//!       push the intersection point, then the current vertex.
+//!    2. If the previous vertex is inside and the current one is outside, push the intersection
+//!       point.
+//!    3. If the previous vertex is outside and the current one is inside, push the intersection
+//!       point, then the current vertex.
 //!    4. If both vertices are outside, push nothing.
 //! 3. Use the output polygon as the input polygon for the next clipping edge.
 //!
 //! After all clipping window edges have been processed, the remaining vertices
 //! form the clipped polygon.
 //!
+//! # Input and output
+//!
+//! Input vertices must occur consecutively around the polygon boundary. Clockwise and
+//! counter-clockwise orderings are both supported, and the closing vertex must not repeat the first
+//! vertex. The output preserves the input traversal direction. When no clipping is needed, it also
+//! preserves the input's starting vertex rather than cyclically rotating the sequence.
+//!
+//! Concave and self-intersecting inputs can produce disconnected visible regions. This function
+//! returns a single [`Polygon`], so those regions may be joined by overlapping edges along the
+//! clipping-window boundary. The result is not necessarily a simple polygon and can produce bridge
+//! artifacts when its outline is rendered. Holes and multiple boundary rings are not represented.
+//!
 //! # Examples
 //!
-//! ```rust
-//! use line_clipping::{Point, Polygon, Window, sutherland_hodgman};
+//! ```
+//! use line_clipping::sutherland_hodgman::clip_polygon;
+//! use line_clipping::{Point, Polygon, Window};
 //!
-//! let vertices: Vec<(f64, f64)> = vec![(-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0)];
+//! let polygon = Polygon::new(&[
+//!     Point::new(-1.0, -1.0),
+//!     Point::new(-1.0, 1.0),
+//!     Point::new(1.0, 1.0),
+//!     Point::new(1.0, -1.0),
+//! ]);
 //!
-//! let vertices: Vec<Point> = vertices
-//!     .into_iter()
-//!     .map(|(x, y)| Point::new(x, y))
-//!     .collect();
-//! let polygon = Polygon::new(&vertices);
+//! let clipped = clip_polygon(&polygon, Window::new(0.0, 3.0, 0.0, 3.0));
 //!
-//! let clipped = sutherland_hodgman::clip_polygon(&polygon, Window::new(0.0, 3.0, 0.0, 3.0));
-//! // Clipped polygon vertices:
-//! // [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)]
+//! assert_eq!(
+//!     clipped.vertices.as_ref(),
+//!     &[
+//!         Point::new(0.0, 0.0),
+//!         Point::new(0.0, 1.0),
+//!         Point::new(1.0, 1.0),
+//!         Point::new(1.0, 0.0),
+//!     ]
+//! );
 //! ```
 
-use crate::{Point, Polygon, Window};
 use alloc::vec::Vec;
+
+use crate::{Point, Polygon, Window};
 
 /// Clips a polygon against a rectangular window using the Sutherland-Hodgman algorithm.
 ///
-/// See the [module-level documentation](crate::sutherland_hodgman) for more details on the algorithm.
+/// Input vertices must occur consecutively around the polygon boundary, in either clockwise or
+/// counter-clockwise order. See the [module-level documentation](crate::sutherland_hodgman) for
+/// details about disconnected results and degenerate boundary edges.
 ///
 /// # Examples
 ///
-/// ```rust
-/// use line_clipping::{Point, Polygon, Window, sutherland_hodgman};
+/// ```
+/// use line_clipping::sutherland_hodgman::clip_polygon;
+/// use line_clipping::{Point, Polygon, Window};
 ///
-/// let vertices: Vec<(f64, f64)> = vec![(-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0)];
+/// let polygon = Polygon::new(&[
+///     Point::new(-1.0, -1.0),
+///     Point::new(-1.0, 1.0),
+///     Point::new(1.0, 1.0),
+///     Point::new(1.0, -1.0),
+/// ]);
 ///
-/// let vertices: Vec<Point> = vertices
-///     .into_iter()
-///     .map(|(x, y)| Point::new(x, y))
-///     .collect();
-/// let polygon = Polygon::new(&vertices);
+/// let clipped = clip_polygon(&polygon, Window::new(0.0, 3.0, 0.0, 3.0));
 ///
-/// let clipped = sutherland_hodgman::clip_polygon(&polygon, Window::new(0.0, 3.0, 0.0, 3.0));
-/// // Clipped polygon vertices:
-/// // [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)]
+/// assert_eq!(
+///     clipped.vertices.as_ref(),
+///     &[
+///         Point::new(0.0, 0.0),
+///         Point::new(0.0, 1.0),
+///         Point::new(1.0, 1.0),
+///         Point::new(1.0, 0.0),
+///     ]
+/// );
 /// ```
 #[must_use]
-pub fn clip_polygon(vertices: &Polygon, window: Window) -> Polygon {
-    let clipped = &vertices.vertices;
+pub fn clip_polygon(polygon: &Polygon, window: Window) -> Polygon {
+    let clipped = &polygon.vertices;
     let clipped = clip_left(clipped, window.x_min);
     let clipped = clip_right(&clipped, window.x_max);
     let clipped = clip_bottom(&clipped, window.y_min);
-    Polygon::new(&clip_top(&clipped, window.y_max))
+    clip_top(&clipped, window.y_max).into()
 }
 
-fn clip_top(clipped: &[Point], y_max: f64) -> Vec<Point> {
+fn clip_left(clipped: &[Point], x_min: f64) -> Vec<Point> {
     clip_edge(
         clipped,
-        |p| p.y <= y_max,
+        |p| p.x >= x_min,
         |p1, p2| {
-            let t = (y_max - p1.y) / (p2.y - p1.y);
-            Point::new(p1.x + t * (p2.x - p1.x), y_max)
-        },
-    )
-}
-
-fn clip_bottom(clipped: &[Point], y_min: f64) -> Vec<Point> {
-    clip_edge(
-        clipped,
-        |p| p.y >= y_min,
-        |p1, p2| {
-            let t = (y_min - p1.y) / (p2.y - p1.y);
-            Point::new(p1.x + t * (p2.x - p1.x), y_min)
+            let t = (x_min - p1.x) / (p2.x - p1.x);
+            Point::new(x_min, p1.y + t * (p2.y - p1.y))
         },
     )
 }
@@ -107,13 +127,24 @@ fn clip_right(clipped: &[Point], x_max: f64) -> Vec<Point> {
     )
 }
 
-fn clip_left(clipped: &[Point], x_min: f64) -> Vec<Point> {
+fn clip_bottom(clipped: &[Point], y_min: f64) -> Vec<Point> {
     clip_edge(
         clipped,
-        |p| p.x >= x_min,
+        |p| p.y >= y_min,
         |p1, p2| {
-            let t = (x_min - p1.x) / (p2.x - p1.x);
-            Point::new(x_min, p1.y + t * (p2.y - p1.y))
+            let t = (y_min - p1.y) / (p2.y - p1.y);
+            Point::new(p1.x + t * (p2.x - p1.x), y_min)
+        },
+    )
+}
+
+fn clip_top(clipped: &[Point], y_max: f64) -> Vec<Point> {
+    clip_edge(
+        clipped,
+        |p| p.y <= y_max,
+        |p1, p2| {
+            let t = (y_max - p1.y) / (p2.y - p1.y);
+            Point::new(p1.x + t * (p2.x - p1.x), y_max)
         },
     )
 }
@@ -123,41 +154,41 @@ where
     F: Fn(Point) -> bool,
     I: Fn(Point, Point) -> Point,
 {
-    let mut result = Vec::new();
-    let len = vertices.len();
-    for i in 0..len {
-        let p1 = vertices[i];
-        // % len to connect last and first vertices
-        let p2 = vertices[(i + 1) % len];
+    // Begin with the closing edge from the last vertex to the first, then emit each current vertex
+    // in input order. An equivalent current-to-next formulation emits the next vertex first and
+    // cyclically rotates the sequence once for every clipping boundary.
+    let Some(&last) = vertices.last() else {
+        return Vec::new();
+    };
 
-        let p1_inside = is_inside(p1);
-        let p2_inside = is_inside(p2);
+    let mut result = Vec::with_capacity(vertices.len());
+    let mut previous = last;
+    for &current in vertices {
+        let previous_inside = is_inside(previous);
+        let current_inside = is_inside(current);
 
-        if p2_inside {
-            if !p1_inside {
-                result.push(get_intersection(p1, p2));
+        match (previous_inside, current_inside) {
+            (true, true) => result.push(current),
+            (true, false) => result.push(get_intersection(previous, current)),
+            (false, true) => {
+                result.push(get_intersection(previous, current));
+                result.push(current);
             }
-            result.push(p2);
-        } else if p1_inside {
-            result.push(get_intersection(p1, p2));
-        } else {
-            // we don't care if none of the points is inside
+            (false, false) => {}
         }
+
+        previous = current;
     }
     result
 }
 
 #[cfg(test)]
 mod tests {
+    use alloc::vec::Vec;
+
     use rstest::rstest;
 
     use super::*;
-    use alloc::vec::Vec;
-
-    // The vertex order in the expected results matches the input order, but may
-    // be cyclically shifted: for each edge, `clip_edge` pushes the second vertex
-    // (`p2`), so over the loop (v0->v1, v1->v2, ..., v_{n-1}->v0) it emits
-    // v1, v2, ..., v0, moving the original first vertex to the end.
 
     /// The clipping window used by every test case.
     ///
@@ -203,6 +234,11 @@ mod tests {
         &[(2.0, 2.0), (2.0, 3.0), (3.0, 3.0), (3.0, 2.0)],
         &[]
     )]
+    #[case::inside_triangle(
+        &[(-0.5, -0.5), (0.0, 0.5), (0.5, -0.5)],
+        &[(-0.5, -0.5), (0.0, 0.5), (0.5, -0.5)]
+    )]
+    #[case::empty(&[], &[])]
     fn no_clipping(#[case] input: &[(f64, f64)], #[case] expected: &[(f64, f64)]) {
         assert_eq!(clip_polygon(&poly(input), WINDOW), poly(expected));
     }
@@ -215,7 +251,7 @@ mod tests {
     )]
     #[case::bottom(
         &[(-0.5, 0.5), (-0.5, -1.5), (0.5, -1.5), (0.5, 0.5)],
-        &[(0.5, 0.5), (-0.5, 0.5), (-0.5, -1.0), (0.5, -1.0)]
+        &[(-0.5, 0.5), (-0.5, -1.0), (0.5, -1.0), (0.5, 0.5)]
     )]
     #[case::right(
         &[(-0.5, -0.5), (1.5, -0.5), (1.5, 0.5), (-0.5, 0.5)],
@@ -238,11 +274,11 @@ mod tests {
     )]
     #[case::left_right(
         &[(-1.5, -0.5), (1.5, -0.5), (1.5, 0.5), (-1.5, 0.5)],
-        &[(-1.0, 0.5), (-1.0, -0.5), (1.0, -0.5), (1.0, 0.5)]
+        &[(-1.0, -0.5), (1.0, -0.5), (1.0, 0.5), (-1.0, 0.5)]
     )]
     #[case::top_right(
         &[(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5)],
-        &[(0.5, 0.5), (0.5, 1.0), (1.0, 1.0), (1.0, 0.5)]
+        &[(1.0, 1.0), (1.0, 0.5), (0.5, 0.5), (0.5, 1.0)]
     )]
     #[case::top_left(
         &[(-0.5, 0.5), (-1.5, 0.5), (-1.5, 1.5), (-0.5, 1.5)],
@@ -250,11 +286,11 @@ mod tests {
     )]
     #[case::bottom_right(
         &[(0.5, -0.5), (0.5, -1.5), (1.5, -1.5), (1.5, -0.5)],
-        &[(1.0, -0.5), (0.5, -0.5), (0.5, -1.0), (1.0, -1.0)]
+        &[(1.0, -1.0), (1.0, -0.5), (0.5, -0.5), (0.5, -1.0)]
     )]
     #[case::bottom_left(
         &[(-0.5, -0.5), (-0.5, -1.5), (-1.5, -1.5), (-1.5, -0.5)],
-        &[(-1.0, -0.5), (-0.5, -0.5), (-0.5, -1.0), (-1.0, -1.0)]
+        &[(-1.0, -1.0), (-1.0, -0.5), (-0.5, -0.5), (-0.5, -1.0)]
     )]
     fn two_edges(#[case] input: &[(f64, f64)], #[case] expected: &[(f64, f64)]) {
         assert_eq!(clip_polygon(&poly(input), WINDOW), poly(expected));
@@ -269,15 +305,15 @@ mod tests {
     )]
     #[case::top_bottom_right(
         &[(1.5, -1.5), (1.5, 1.5), (-0.5, 1.5), (-0.5, -1.5)],
-        &[(-0.5, 1.0), (-0.5, -1.0), (1.0, -1.0), (1.0, 1.0)]
+        &[(1.0, -1.0), (1.0, 1.0), (-0.5, 1.0), (-0.5, -1.0)]
     )]
     #[case::top_left_right(
         &[(-1.5, 1.5), (1.5, 1.5), (1.5, -0.5), (-1.5, -0.5)],
-        &[(-1.0, -0.5), (-1.0, 1.0), (1.0, 1.0), (1.0, -0.5)]
+        &[(-1.0, 1.0), (1.0, 1.0), (1.0, -0.5), (-1.0, -0.5)]
     )]
     #[case::bottom_left_right(
         &[(-1.5, -1.5), (1.5, -1.5), (1.5, 0.5), (-1.5, 0.5)],
-        &[(1.0, 0.5), (-1.0, 0.5), (-1.0, -1.0), (1.0, -1.0)]
+        &[(-1.0, -1.0), (1.0, -1.0), (1.0, 0.5), (-1.0, 0.5)]
     )]
     fn three_edges(#[case] input: &[(f64, f64)], #[case] expected: &[(f64, f64)]) {
         assert_eq!(clip_polygon(&poly(input), WINDOW), poly(expected));
@@ -288,10 +324,39 @@ mod tests {
     #[rstest]
     #[case::all(
         &[(-2.0, -2.0), (-2.0, 2.0), (2.0, 2.0), (2.0, -2.0)],
-        &[(-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0)]
+        &[(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0)]
     )]
     fn all_edges(#[case] input: &[(f64, f64)], #[case] expected: &[(f64, f64)]) {
         assert_eq!(clip_polygon(&poly(input), WINDOW), poly(expected));
+    }
+
+    /// Clipping away the base of a concave U leaves two disconnected regions. Because the
+    /// algorithm returns one vertex sequence, it joins the regions with overlapping edges along
+    /// the bottom clipping boundary.
+    #[test]
+    fn concave_u_joins_disconnected_regions() {
+        let input = poly(&[
+            (-0.75, 0.75),
+            (-0.75, -2.0),
+            (0.75, -2.0),
+            (0.75, 0.75),
+            (0.25, 0.75),
+            (0.25, -1.5),
+            (-0.25, -1.5),
+            (-0.25, 0.75),
+        ]);
+        let expected = poly(&[
+            (-0.75, 0.75),
+            (-0.75, -1.0),
+            (0.75, -1.0),
+            (0.75, 0.75),
+            (0.25, 0.75),
+            (0.25, -1.0),
+            (-0.25, -1.0),
+            (-0.25, 0.75),
+        ]);
+
+        assert_eq!(clip_polygon(&input, WINDOW), expected);
     }
 
     /// Non-axis-aligned (diagonal) subject polygons. Unlike the rectangle cases
@@ -302,7 +367,7 @@ mod tests {
     #[rstest]
     #[case::triangle_to_quadrilateral(
         &[(0.0, 0.0), (-0.5, 2.0), (0.5, 0.0)],
-        &[(-0.25, 1.0), (0.0, 1.0), (0.5, 0.0), (0.0, 0.0)]
+        &[(0.0, 0.0), (-0.25, 1.0), (0.0, 1.0), (0.5, 0.0)]
     )]
     #[case::quadrilateral_to_pentagon(
         &[(-0.75, 0.5), (0.0, 1.5), (0.75, 0.5), (0.0, -0.5)],
