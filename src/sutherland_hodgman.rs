@@ -66,7 +66,7 @@
 //! clipping-window boundary. The result is not necessarily a simple polygon and may produce bridge
 //! artifacts when its outline is rendered.
 //!
-//! ```
+//! ```text
 //! Input polygon:                 After clipping:
 //! ┌───────────────┐
 //! │               │
@@ -74,7 +74,6 @@
 //! │  │         │  │    ──────>   ┌──┐=========┌──┐
 //! │  │         │  │              │  │         │  │
 //! └──┘         └──┘              └──┘         └──┘
-//!
 //! ```
 
 use alloc::vec::Vec;
