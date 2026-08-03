@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.3.8](https://github.com/ratatui/line-clipping/compare/v0.3.7...v0.3.8) - 2026-08-03
+
+### Other
+
+- Add Sutherland-Hodgman polygon clipping algorithm ([#38](https://github.com/ratatui/line-clipping/pull/38))
+- *(deps)* bump bitflags from 2.13.0 to 2.13.1 in the rust-dependencies group ([#37](https://github.com/ratatui/line-clipping/pull/37))
+- *(deps)* bump actions/checkout from 6 to 7 in the github-actions group ([#36](https://github.com/ratatui/line-clipping/pull/36))
+- *(deps)* bump bitflags from 2.11.1 to 2.13.0 in the rust-dependencies group ([#35](https://github.com/ratatui/line-clipping/pull/35))
+- *(deps)* bump codecov/codecov-action from 6 to 7 in the github-actions group ([#33](https://github.com/ratatui/line-clipping/pull/33))
+
 ## [0.3.7](https://github.com/ratatui/line-clipping/compare/v0.3.6...v0.3.7) - 2026-03-27
 
 ### Other
