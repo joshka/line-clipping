@@ -1,5 +1,5 @@
 #![no_std]
-//! A rust crate to implement several line clipping algorithms. See the
+//! A Rust crate implementing line and polygon clipping algorithms. See the
 //! [documentation](https://docs.rs/line_clipping) for more information. The choice of algorithms is
 //! based on the following article which contains a good summary of the options:
 //!
@@ -10,6 +10,8 @@
 //! Supports:
 //!
 //! - [x] [Cohen-Sutherland](crate::cohen_sutherland)
+//! - [x] [Sutherland-Hodgman](https://docs.rs/line-clipping/latest/line_clipping/sutherland_hodgman/)
+//!   polygon clipping algorithm
 //!
 //! TODO
 //!
@@ -59,6 +61,10 @@
 //! the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without
 //! any additional terms or conditions.
 pub mod cohen_sutherland;
+pub mod sutherland_hodgman;
+
+extern crate alloc;
+use alloc::vec::Vec;
 
 /// A point in 2D space.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -99,7 +105,38 @@ impl LineSegment {
     }
 }
 
-/// A rectangular region to clip lines against.
+/// A polygon represented by an ordered sequence of boundary vertices.
+///
+/// Vertices must occur consecutively around the polygon boundary, either clockwise or
+/// counter-clockwise. The final edge back to the first vertex is implicit, so the first vertex
+/// should not be repeated at the end.
+///
+/// A polygon can be concave or self-intersecting, but some algorithms may return degenerate
+/// boundaries for those inputs. This type represents one boundary only; it cannot represent holes
+/// or multiple disconnected polygons.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Polygon {
+    /// Vertices of the polygon.
+    pub vertices: Vec<Point>,
+}
+
+impl Polygon {
+    /// Creates a polygon by copying an ordered slice of boundary vertices.
+    #[must_use]
+    pub fn new(vertices: &[Point]) -> Self {
+        Self {
+            vertices: vertices.to_vec(),
+        }
+    }
+}
+
+impl From<Vec<Point>> for Polygon {
+    fn from(vertices: Vec<Point>) -> Self {
+        Self { vertices }
+    }
+}
+
+/// A rectangular region to clip geometry against.
 #[derive(Debug, Clone, Copy)]
 pub struct Window {
     /// The minimum x coordinate of the window.

@@ -1,6 +1,6 @@
 [package]
 name = "line-clipping"
-description = "A simple crate implementing line clipping algorithms."
+description = "A simple crate implementing line and polygon clipping algorithms."
 authors = ["Josh McKinney"]
 license = "MIT OR Apache-2.0"
 version = "0.3.7"
@@ -9,7 +9,7 @@ rust-version = "1.85"
 documentation = "https://docs.rs/line-clipping"
 repository = "https://github.com/ratatui/line-clipping"
 readme = "README.md"
-keywords = ["line", "clipping", "algorithm"]
+keywords = ["line", "polygon", "clipping", "algorithm"]
 categories = ["algorithms", "graphics"]
 
 [dependencies]
